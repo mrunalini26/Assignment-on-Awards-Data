@@ -1,0 +1,380 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import statsmodels.api as sm
+from sklearn import datasets 
+import os
+os.chdir("C:\\Users\\User\\Downloads\\B10\\Assignments\\python")
+os.getcwd()
+df=pd.read_excel("awards.xls")
+df.shape
+len(df.columns)
+len(df)
+df.head()
+df.columns
+df.info()
+# =============================================================================
+# 1-Get Primary Country wise received awards interms of value/amount
+# =============================================================================
+df.groupby(['Primary_Country','Awardee'])['Estimated_Total_Award_Amount'].sum()
+
+#output:
+#Primary_Country  Awardee                                          
+#AS               SYRACUSE UNIVERSITY                                    30000
+#BL               WELLESLEY COLLEGE                                      85130
+#BR               VANDERBILT UNIVERSITY, THE                             22952
+#                 VIRGINIA POLYTECHNIC INSTITUTE & STATE UNIVERSITY      90000
+#CA               TEXAS A & M UNIVERSITY                                 14000
+#  ...............................................................
+#US               YALE UNIVERSITY                                      1860634
+#                 YUKON RIVER INTER-TRIBAL WATERSHED COUNCIL             29223
+#                 ZEBRA ANALYTIX, INC.                                  225000
+#                 ZEOVATION, INC.                                       224985
+#                 ZWITTERCO, LLC                                        225000
+#Name: Estimated Total Award Amount, Length: 524, dtype: int64
+
+# =============================================================================
+# 2-List top 10 universities each which got awards in terms of value/amount and count of awards
+# =============================================================================
+data=df[['Estimated_Total_Award_Amount','Doing_Business_As_Name','Awardee']]
+top=data.groupby(['Awardee'])['Estimated_Total_Award_Amount'].agg(['count','sum'])
+top['Estimated_Total_Award_Amount']=top['sum']
+top.sort_values(by=['Estimated_Total_Award_Amount'], ascending=False)[:10]
+#output:
+                                                   count  ...  Estimated_Total_Award_Amount
+Awardee                                                    ...                              
+RUTGERS, THE STATE UNIVERSITY OF NEW JERSEY            13  ...                      22206638
+SRI INTERNATIONAL                                       1  ...                      15000000
+REGENTS OF THE UNIVERSITY OF MINNESOTA                 20  ...                      13330966
+UNIVERSITY OF WASHINGTON                               21  ...                      11793862
+PRESIDENT AND FELLOWS OF HARVARD COLLEGE               12  ...                      11152281
+RESEARCH FOUNDATION FOR THE STATE UNIVERSITY OF...     33  ...                      10931812
+UNIVERSITY OF GEORGIA RESEARCH FOUNDATION, INC.         8  ...                      10399292
+TEXAS A&M ENGINEERING EXPERIMENT STATION               16  ...                       9988007
+UNIVERSITY OF ILLINOIS                                 31  ...                       9588450
+REGENTS OF THE UNIVERSITY OF MICHIGAN                  27  ...                       9421749
+
+[10 rows x 3 columns]
+#RECHECKING ABOVE VALUES
+c=df[df.Awardee=='RUTGERS, THE STATE UNIVERSITY OF NEW JERSEY']
+c.Estimated_Total_Award_Amount.sum()
+#OUTPUT: 22206638
+# =============================================================================
+# 3-Get Primary Country and Primary County wise frequencies and find out scenarios which does not have both details or any one of them
+# =============================================================================
+df.groupby(['Primary_Country'])['Primary_County'].value_counts()
+
+#output
+Primary_Country  Primary_County
+US               New York          45
+                 Cambridge         40
+                 Atlanta           35
+                 Ann Arbor         31
+                 Philadelphia      30
+                                   ..
+                 Wayne              1
+                 West Haven         1
+                 Williamstown       1
+                 Woodland Hills     1
+                 Wooster            1
+Name: Primary_County, Length: 326, dtype: int64
+#df.to_csv("primary.csv")
+x=df['Primary_Country'].isnull()
+y=df['Primary_County'].isnull()
+a=df[x&y]
+#output:
+                                          Awardee  ... ProjectOutcomesReport
+70                                      EDADVANCE  ...                   NaN
+193                       UNIVERSITY OF TENNESSEE  ...                   NaN
+269              FLORIDA INTERNATIONAL UNIVERSITY  ...                   NaN
+331                  UNIVERSITY OF SOUTH CAROLINA  ...                   NaN
+346   RUTGERS, THE STATE UNIVERSITY OF NEW JERSEY  ...                   NaN
+457              NORTHEASTERN ILLINOIS UNIVERSITY  ...                   NaN
+1770                                          NaN  ...                   NaN
+
+b=df[x|y]
+#output:
+                                                Awardee  ... ProjectOutcomesReport
+48    VIRGINIA POLYTECHNIC INSTITUTE & STATE UNIVERSITY  ...                   NaN
+70                                            EDADVANCE  ...                   NaN
+193                             UNIVERSITY OF TENNESSEE  ...                   NaN
+221                   TRUSTEES OF DAVIDSON COLLEGE, THE  ...                   NaN
+260                                                 NaN  ...                   NaN
+269                    FLORIDA INTERNATIONAL UNIVERSITY  ...                   NaN
+321                                                 NaN  ...                   NaN
+326                                                 NaN  ...                   NaN
+331                        UNIVERSITY OF SOUTH CAROLINA  ...                   NaN
+346         RUTGERS, THE STATE UNIVERSITY OF NEW JERSEY  ...                   NaN
+411                                                 NaN  ...                   NaN
+457                    NORTHEASTERN ILLINOIS UNIVERSITY  ...                   NaN
+483              LELAND STANFORD JUNIOR UNIVERSITY, THE  ...                   NaN
+539                              TEXAS A & M UNIVERSITY  ...                   NaN
+613                   GEORGE WASHINGTON UNIVERSITY, THE  ...                   NaN
+703                                    EMORY UNIVERSITY  ...                   NaN
+744               UNIVERSITY OF CALIFORNIA, LOS ANGELES  ...                   NaN
+752                     UNIVERSITY OF NOTRE DAME DU LAC  ...                   NaN
+798             AMERICAN MUSEUM OF NATURAL HISTORY, THE  ...                   NaN
+1007  RESEARCH FOUNDATION FOR THE STATE UNIVERSITY O...  ...                   NaN
+1179                         VANDERBILT UNIVERSITY, THE  ...                   NaN
+1182            AMERICAN MUSEUM OF NATURAL HISTORY, THE  ...                   NaN
+1275                                  WELLESLEY COLLEGE  ...                   NaN
+1343                                SYRACUSE UNIVERSITY  ...                   NaN
+1464                MASSACHUSETTS GENERAL HOSPITAL, THE  ...                   NaN
+1770                                                NaN  ...                   NaN
+
+[26 rows x 44 columns]
+# =============================================================================
+# 4-How many Primary Cong.Districts available in data, list them and display top5 and bottom5 awarded amounts
+# =============================================================================
+data1=df[['Primary_Cong.District','Estimated_Total_Award_Amount']]
+
+data1['Primary_Cong.District'].count()
+
+#output:1745
+
+top=data1.groupby(['Primary_Cong.District']).sum().sort_values('Estimated_Total_Award_Amount',ascending=False)
+
+top.head(5)
+
+#output
+#                       Estimated_Total_Award_Amount
+#Primary_Cong.District                              
+#2.0                                        79028196
+#7.0                                        55909440
+#5.0                                        50540453
+#1.0                                        46879808
+#3.0                                        41862279
+
+top.tail(5)
+
+#output
+#                       Estimated_Total_Award_Amount
+#Primary_Cong.District                              
+#30.0                                         958538
+#34.0                                         946370
+#50.0                                         390867
+#43.0                                         386800
+#28.0                                          15914
+
+# =============================================================================
+# 5-Find out number of universities in each Primary Country and each Primary Cong.District
+# =============================================================================
+df.groupby(['Primary_Country','Primary_Cong.District'])['Doing_Business_As_Name'].value_counts()
+
+#output:
+Primary_Country  Primary_Cong.District  Doing_Business_As_Name                                
+US               0.0                    George Washington University                              7
+                                        Montana State University                                  6
+                                        University of Delaware                                    4
+                                        University of North Dakota Main Campus                    4
+                                        Georgetown University                                     3
+                                                                                                 ..
+                 49.0                   TEGA Therapeutics Inc                                     1
+                 50.0                   University Auxiliary and Research Services Corporation    1
+                 53.0                   San Diego State University Foundation                     2
+                                        Cybele Microbiome Inc                                     1
+                                        INFOCUS NETWORKS                                          1
+Name: Doing_Business_As_Name, Length: 633, dtype: int64
+# =============================================================================
+# 6-Primary State wise awardee count and value/amount
+# =============================================================================
+
+df.groupby(['Primary_State','Estimated_Total_Award_Amount'])['Awardee'].value_counts()
+
+#output:
+Primary_State  Estimated_Total_Award_Amount  Awardee                                      
+AK             29223                         YUKON RIVER INTER-TRIBAL WATERSHED COUNCIL       1
+               31833                         UNIVERSITY OF ALASKA FAIRBANKS                   1
+               133857                        UNIVERSITY OF ALASKA FAIRBANKS                   1
+               2946510                       UNIVERSITY OF ALASKA FAIRBANKS                   1
+AL             29986                         UNIVERSITY OF ALABAMA AT BIRMINGHAM              1
+                                                                                             ..
+WV             287310                        WEST VIRGINIA UNIVERSITY RESEARCH CORPORATION    1
+               326976                        WEST VIRGINIA UNIVERSITY RESEARCH CORPORATION    1
+WY             164998                        UNIVERSITY OF WYOMING                            1
+               260306                        UNIVERSITY OF WYOMING                            1
+               360000                        UNIVERSITY OF WYOMING                            1
+Name: Awardee, Length: 1633, dtype: int64
+
+# =============================================================================
+# 7-Get list of Primary State wise corresponding unique Primary City names
+# =============================================================================
+
+df.groupby(['Primary_State'])['Primary_City'].unique()
+
+#output:
+Primary_State
+AK                               [Fairbanks, Anchorage]
+AL    [Birmingham, nan, Mobile, Tuscaloosa, Huntsvil...
+AR    [State University, nan, Fayetteville, FAYETTEV...
+AZ    [Tucson, Phoenix, Tempe, nan, Flagstaff, Parad...
+CA    [Riverside, Berkeley, nan, Santa Barbara, Los ...
+CO    [Boulder, Fort Collins, nan, Golden, Denver, C...
+CT    [West Haven, Storrs, nan, New Haven, Waterbury...
+DC     [Washington DC, Washington, DC, Washington, nan]
+DE                            [Wilmington, Newark, nan]
+FL    [TALLAHASSEE, Tampa, nan, Orlando, Tallahassee...
+GA    [Atlanta, FORT VALLEY, Athens, nan, Augusta, S...
+HI                                  [Honolulu, Kahului]
+IA                    [Ames, Iowa City, DAVENPORT, nan]
+ID                                 [Moscow, Boise, nan]
+IL    [nan, Evanston, Urbana, DeKalb, Chicago, Jacks...
+IN    [nan, Bloomington, West Lafayette, INDIANAPOLI...
+KS    [Lawrence, nan, Daegu, LAWRENCE, Manhattan, Wi...
+KY                  [Louisville, Lexington, LOUISVILLE]
+LA              [nan, Baton Rouge, New Orleans, Ruston]
+MA    [Boston, Chestnut Hill, Cambridge, Medford, Wo...
+MD    [Baltimore, College Park, nan, Salisbury, Tows...
+ME    [Bar Harbor, Orono, Newry, nan, Portland, Lewi...
+MI    [East Lansing, Ann Arbor, Warren, nan, Kalamaz...
+MN    [Saint Paul, Minneapolis, Minneaplis, nan, Gol...
+MO    [nan, Columbia, St. Louis, Saint Louis, Rolla,...
+MS    [Mississippi State, University, nan, Hattiesbu...
+MT       [Bozeman, Missoula, BOZEMAN, nan, Great Falls]
+NC    [Chapel Hill, nan, Fayetteville, Raleigh, Wins...
+ND                      [Grand Forks, Fort Totten, nan]
+NE                                       [Lincoln, nan]
+NH                           [New London, nan, Hanover]
+NJ    [nan, Princeton, Newark, Piscataway, Camden, H...
+NM    [Las Cruces, Los Alamos, nan, Albuquerque, San...
+NV                                          [Reno, nan]
+NY    [Albany, nan, Brooklyn, New York, Buffalo, Pal...
+OH    [51 Goodman Drive; PO Box 2, Columbus, Clevela...
+OK                     [nan, Stillwater, Tulsa, Norman]
+OR                   [Eugene, Corvallis, nan, Portland]
+PA    [Philadelphia, nan, Pittsburgh, University Par...
+PR           [Mayaguez, Arecibo, San Juan, Rio Piedras]
+RI                     [West Kingston, Providence, nan]
+SC        [Columbia, nan, Greenville, Clemson, CLEMSON]
+SD           [Rapid City, Spearfish, Hartford, Madison]
+TN    [Chattanooga, Murfreesboro, Knoxville, Memphis...
+TX    [Denton, Houston, College Station, nan, Port A...
+UT    [nan, Salt Lake City, LOGAN, Logan, SALT LAKE ...
+VA    [Fairfax, Charlottesville, University of Richm...
+VT                                    [Burlington, nan]
+WA    [Seattle, Redmond, Mount Vernon, nan, La Conne...
+WI    [Milwaukee, Madison, milwaukee, Middleton, nan...
+WV                                         [Morgantown]
+WY                                                [nan]
+Name: Primary_City, dtype: object
+
+# =============================================================================
+# 8-Awardee State wise get the list of awarded value/amount
+# =============================================================================
+
+
+df.groupby(['Awardee_State'])['Estimated_Total_Award_Amount'].sum()
+
+#output:
+Awardee_State
+AK     3141423
+AL    10925833
+AR     2650416
+AZ     9849339
+CA    94742191
+CO    17172131
+CT     6321606
+DC     7240870
+DE      611506
+FL    26120463
+GA    23118404
+HI     3525771
+IA     7350252
+ID     1819743
+IL    18769072
+IN    13863816
+KS     4763862
+KY     2199396
+LA     4819573
+MA    52098548
+MD    10258947
+ME     2862326
+MI    20339632
+MN    15223951
+MO    10557720
+MS     3223950
+MT     3164083
+NC    21008399
+ND     4110308
+NE     4343663
+NH     4233732
+NJ    31527440
+NM     3603279
+NV     6318083
+NY    49608561
+OH    11130367
+OK     3491198
+OR     6824540
+PA    31721860
+PR     7822102
+RI     1802605
+SC     3719242
+SD      853840
+TN    11232736
+TX    40276410
+UT     6853678
+VA    16340777
+VT      717647
+WA    17356984
+WI     6193703
+WV      858549
+WY      785304
+Name: Estimated_Total_Award_Amount, dtype: int64
+
+a=df[df.Awardee_State=='AK']
+a.Estimated_Total_Award_Amount.sum()
+#output:3141423
+
+# =============================================================================
+# 9-Get domain wise counts using column name "PD/PI Email"
+# =============================================================================
+df['domain']=df['PD/PI Email'].str.split('@').str[1]
+
+df.domain.value_counts()
+#output:
+gmail.com              74
+umich.edu              27
+ncsu.edu               23
+illinois.edu           21
+tamu.edu               20
+                       ..
+cs.unc.edu              1
+calacademy.org          1
+reed.edu                1
+utrgv.edu               1
+safelimaterials.com     1
+Name: domain, Length: 681, dtype: int64
+# =============================================================================
+# 10-Update country code "( )" and remaining phone number in separate columns using base column PD/PI Phone
+# =============================================================================
+df['code']=df['PD/PI Phone'].str.split(' ').str[0]
+df['phno']=df['PD/PI Phone'].str.split(' ').str[1]
+
+df[['code','phno']]
+#output:
+       code      phno
+0       NaN       NaN
+1     (518)  456-7647
+2     (202)  274-6327
+3     (434)  924-1318
+4     (850)  645-1394
+    ...       ...
+1766  (305)  348-3608
+1767  (816)  490-6458
+1768  (540)  231-6593
+1769  (312)  952-0436
+1770    NaN       NaN
+
+[1771 rows x 2 columns]
+
+
+
+
+
+
+
+
+
+
+
